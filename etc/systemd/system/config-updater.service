@@ -1,0 +1,6 @@
+[Unit]
+Description=Update config from immutable release
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/update-config.sh
