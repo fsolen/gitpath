@@ -1,17 +1,12 @@
 flowchart TD
 
-    Dev[Git Commit] --> CI[CI Pipeline]
+    Dev[Git Commit] --> CI[CI: Full Tree Snapshot]
 
-    CI -->|If Sunday 04:00| Full[Create Full Snapshot]
-    CI -->|Otherwise| Delta[Create rsync Delta per Commit]
-
-    Full --> FB1[FlashBlade Region A]
-    Delta --> FB1
-
+    CI --> FB1[FlashBlade Region A]
     FB1 -->|Async Bucket Replication| FB2[FlashBlade Region B]
 
-    FB1 --> NodesA[Linux Nodes Region A]
-    FB2 --> NodesB[Linux Nodes Region B]
+    FB1 --> NodesA[Nodes Region A]
+    FB2 --> NodesB[Nodes Region B]
 
-    NodesA -->|Jitter + Poll| SwitchA[Atomic Switch]
-    NodesB -->|Jitter + Poll| SwitchB[Atomic Switch]
+    NodesA -->|Jitter + rsync reconcile| SwitchA[Atomic Switch]
+    NodesB -->|Jitter + rsync reconcile| SwitchB[Atomic Switch]
