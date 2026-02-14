@@ -1,0 +1,46 @@
+flowchart TD
+    %% ------------------ Dev/Repo ------------------
+    Dev[Git Commit / Pull Request] --> CI[CI Pipeline: Jenkins]
+
+    %% ------------------ CI Pipeline ------------------
+    CI -->|Full Tree Snapshot| Release[Immutable Release Directory]
+    Release --> Storage[:contentReference[oaicite:0]{index=0}]
+
+    %% ------------------ Storage Replication ------------------
+    Storage -->|Native replication| StorageCross[FlashBlade Cross-Region]
+
+    %% ------------------ Nodes Region A ------------------
+    subgraph RegionA["Region A Nodes"]
+        NodesA1[Node 1] 
+        NodesA2[Node 2] 
+        NodesA3[Node 3] 
+        NodesA1 -->|Jitter + rsync reconcile| SwitchA1[Atomic Symlink Switch]
+        NodesA2 -->|Jitter + rsync reconcile| SwitchA2[Atomic Symlink Switch]
+        NodesA3 -->|Jitter + rsync reconcile| SwitchA3[Atomic Symlink Switch]
+    end
+
+    Storage --> NodesA1
+    Storage --> NodesA2
+    Storage --> NodesA3
+
+    %% ------------------ Nodes Region B ------------------
+    subgraph RegionB["Region B Nodes"]
+        NodesB1[Node 1]
+        NodesB2[Node 2]
+        NodesB3[Node 3]
+        NodesB1 -->|Jitter + rsync reconcile| SwitchB1[Atomic Symlink Switch]
+        NodesB2 -->|Jitter + rsync reconcile| SwitchB2[Atomic Symlink Switch]
+        NodesB3 -->|Jitter + rsync reconcile| SwitchB3[Atomic Symlink Switch]
+    end
+
+    StorageCross --> NodesB1
+    StorageCross --> NodesB2
+    StorageCross --> NodesB3
+
+    %% ------------------ Services ------------------
+    SwitchA1 --> ServiceA1[Restart Service if Config Changed]
+    SwitchA2 --> ServiceA2[Restart Service if Config Changed]
+    SwitchA3 --> ServiceA3[Restart Service if Config Changed]
+    SwitchB1 --> ServiceB1[Restart Service if Config Changed]
+    SwitchB2 --> ServiceB2[Restart Service if Config Changed]
+    SwitchB3 --> ServiceB3[Restart Service if Config Changed]
