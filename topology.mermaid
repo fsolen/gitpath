@@ -1,0 +1,23 @@
+flowchart TD
+
+    Dev[Git Push] --> CI[CI Pipeline]
+
+    CI -->|Create Base or Delta| Artifact[Versioned Artifacts]
+    Artifact -->|Upload| FB1[FlashBlade Primary Region]
+
+    FB1 -->|Native Async Replication| FB2[FlashBlade Secondary Region]
+
+    subgraph Region A
+        FB1 --> A1[Node Group A1]
+        FB1 --> A2[Node Group A2]
+    end
+
+    subgraph Region B
+        FB2 --> B1[Node Group B1]
+        FB2 --> B2[Node Group B2]
+    end
+
+    A1 -->|Jitter + Poll| SwitchA[Atomic Symlink Switch]
+    A2 -->|Jitter + Poll| SwitchA
+    B1 -->|Jitter + Poll| SwitchB[Atomic Symlink Switch]
+    B2 -->|Jitter + Poll| SwitchB
